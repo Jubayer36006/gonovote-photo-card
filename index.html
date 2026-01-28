@@ -3,38 +3,684 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>'হ্যাঁ' ভোট ফটো কার্ড - গণভোট ২০২৬</title>
+    <title>গণভোট ২০২৬ - প্রিমিয়াম ফটো কার্ড জেনারেটর</title>
     <!-- Google Fonts: Hind Siliguri for beautiful Bengali typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://scripts.sirv.com/sirvjs/v3/sirv.js"></script>
     <style>
-        /* Modern Design Tokens */
+        /* Modern Design Tokens & Variables */
         :root {
             --primary-gradient: linear-gradient(135deg, #006a4e 0%, #004d39 100%);
             --accent-gradient: linear-gradient(135deg, #00b894 0%, #008450 100%);
             --primary: #006a4e;
             --primary-dark: #003326;
-            --primary-light: #008450;
+            --primary-light: #059669;
             --secondary: #f8fafc;
-            --accent: #ffcc00;
+            --accent: #facc15;
             --text-main: #0f172a;
             --text-sub: #475569;
             --white: #ffffff;
-            --glass: rgba(255, 255, 255, 0.8);
+            --glass: rgba(255, 255, 255, 0.95);
             --border: rgba(226, 232, 240, 0.8);
-            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            --radius: 20px;
+            --radius: 24px;
             --font-family: 'Hind Siliguri', 'Segoe UI', Roboto, sans-serif;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Global Reset */
+        /* Base Styles */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: var(--font-family);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: var(--text-main);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.6;
+        }
+
+        /* Layout Helpers */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Hero Section */
+        .hero {
+            background: var(--primary-gradient);
+            padding: 4rem 1rem 8rem;
+            text-align: center;
+            color: var(--white);
+            position: relative;
+            clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+        }
+
+        .hero h1 {
+            font-size: clamp(2.2rem, 8vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            animation: fadeInUp 0.6s ease-out;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: clamp(0.9rem, 4vw, 1.15rem);
+            max-width: 700px;
+            margin: 0 auto;
+            opacity: 0.9;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        /* Main Grid Wrapper */
+        .main-wrapper {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-top: -5rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        @media (min-width: 1024px) {
+            .main-wrapper {
+                grid-template-columns: 1.2fr 0.8fr;
+                gap: 2.5rem;
+            }
+        }
+
+        /* Generator Card */
+        .generator-card {
+            background: var(--glass);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            animation: fadeIn 1s ease-in;
+        }
+
+        .canvas-container {
+            width: 100%;
+            aspect-ratio: 1/1;
+            background: #e2e8f0;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
+            border: 2px solid var(--white);
+            cursor: move;
+            touch-action: none;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Responsive Controls */
+        .controls {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .control-label {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0.8rem;
+        }
+
+        /* Improved Horizontal Frame List */
+        .frame-scroller {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 10px 5px 15px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            scroll-snap-type: x mandatory;
+        }
+
+        .frame-scroller::-webkit-scrollbar { display: none; }
+
+        .frame-item {
+            flex: 0 0 85px;
+            scroll-snap-align: center;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .frame-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            border: 3px solid var(--white);
+            background: #fff;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            overflow: hidden;
+            margin: 0 auto 8px;
+        }
+
+        .frame-preview img { width: 100%; height: 100%; object-fit: contain; }
+
+        .frame-item.active .frame-preview {
+            border-color: var(--primary);
+            transform: scale(1.1);
+            box-shadow: 0 8px 15px rgba(0,106,78,0.2);
+        }
+
+        .frame-item span {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-sub);
+        }
+
+        /* Modern Range Input */
+        .range-box {
+            background: #f8fafc;
+            padding: 1.25rem;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .range-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        /* Action Buttons Grid */
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        @media (min-width: 480px) {
+            .button-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        .btn {
+            padding: 1.1rem;
+            border-radius: 18px;
+            border: none;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: var(--white);
+            box-shadow: 0 10px 20px rgba(0, 106, 78, 0.2);
+        }
+
+        /* Sidebar Info Card */
+        .info-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+            border-top: 8px solid var(--primary);
+            height: fit-content;
+        }
+
+        /* Countdown */
+        .countdown {
+            padding: 4rem 1rem;
+            text-align: center;
+        }
+
+        .timer {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .timer-unit {
+            background: var(--white);
+            min-width: 75px;
+            padding: 1rem 0.4rem;
+            border-radius: 18px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .timer-val {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Developer Section - Fixed Image & Better Mobile Design */
+        .dev-section {
+            padding: 4rem 1rem;
+            background: #f8fafc;
+            margin-top: 2rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .dev-card {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+            background: var(--white);
+            padding: 2.5rem 1.5rem;
+            border-radius: 30px;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .dev-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+
+        .dev-img-container {
+            width: 130px;
+            height: 130px;
+            margin: 0 auto 1.5rem;
+            position: relative;
+        }
+
+        .dev-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 6px solid var(--white);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            background: #e2e8f0;
+            display: block;
+        }
+
+        .dev-img-container::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border: 2px solid var(--primary-light);
+            border-radius: 50%;
+            opacity: 0.5;
+        }
+
+        .dev-bio {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: var(--transition);
+            text-align: left;
+            margin-top: 1.5rem;
+            background: #f1f5f9;
+            padding: 0 1.5rem;
+            border-radius: 20px;
+        }
+
+        .dev-bio.active {
+            max-height: 500px;
+            opacity: 1;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--primary-dark);
+            color: #cbd5e1;
+            padding: 4rem 1rem 2rem;
+            text-align: center;
+        }
+
+        .footer-disclaimer {
+            background: rgba(255,255,255,0.05);
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background: var(--white);
+            max-width: 450px;
+            width: 100%;
+            padding: 2rem;
+            border-radius: var(--radius);
+            animation: fadeInUp 0.4s ease;
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 18px; height: 18px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .hidden { display: none; }
+    </style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+
+    <header class="hero">
+        <div class="container">
+            <h1>গণভোট ২০২৬</h1>
+            <p>আপনার রায় দিন, সুন্দর আগামীর বাংলাদেশ গড়ুন। সহজেই নিজের ছবি দিয়ে সচেতনতামূলক ফটো ফ্রেম তৈরি করুন।</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="main-wrapper">
+            
+            <section class="generator-card">
+                <div class="canvas-container" id="dropZone">
+                    <canvas id="cardCanvas" width="1080" height="1080"></canvas>
+                </div>
+
+                <div class="controls">
+                    <div>
+                        <span class="control-label">🖼️ ফ্রেম বেছে নিন</span>
+                        <div class="frame-scroller" id="frameList"></div>
+                        
+                        <a href="https://wa.me/message/RSERCZRJSTBIB1" target="_blank" style="text-decoration:none;">
+                            <div style="background:#25D366; color:white; padding:12px; border-radius:14px; text-align:center; font-weight:700; font-size:0.9rem; display:flex; align-items:center; justify-content:center; gap:10px; margin-top:10px; box-shadow: 0 4px 12px rgba(37,211,102,0.2);">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                                ফ্রেম যোগ করতে হোয়াটসঅ্যাপ করুন
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="range-box">
+                        <div class="range-header">
+                            <span>🔍 জুম করুন</span>
+                            <span id="zoomLabelText">১০০%</span>
+                        </div>
+                        <input type="range" id="zoomSlider" min="0.1" max="3" step="0.01" value="1">
+                    </div>
+
+                    <div class="button-grid">
+                        <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                            ছবি যোগ করুন
+                        </button>
+                        <button class="btn btn-primary" id="downloadBtn">
+                            <span class="spinner" id="dlSpinner"></span>
+                            <svg id="dlIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            ডাউনলোড কার্ড
+                        </button>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*" class="hidden">
+                </div>
+            </section>
+
+            <aside class="info-card">
+                <h2 style="font-size:1.4rem; color:var(--primary); margin-bottom:1rem;">কেন ‘হ্যাঁ’ ভোট দেবেন?</h2>
+                <ul style="list-style:none;">
+                    <li style="display:flex; gap:10px; margin-bottom:12px; color:var(--text-sub);">
+                        <span style="color:var(--primary);">✔</span>
+                        <span>জনগণের সরাসরি ক্ষমতায়ন ও গণতন্ত্র সুসংহত করতে।</span>
+                    </li>
+                    <li style="display:flex; gap:10px; margin-bottom:12px; color:var(--text-sub);">
+                        <span style="color:var(--primary);">✔</span>
+                        <span>স্বচ্ছ নির্বাচন ব্যবস্থা ও জবাবদিহিতা নিশ্চিত করতে।</span>
+                    </li>
+                </ul>
+
+                <div style="background:#f1f5f9; padding:1.2rem; border-radius:16px; margin-top:1.5rem; text-align:center; border: 2px dashed #cbd5e1;">
+                    <div style="background:white; padding:0.8rem; border-radius:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; font-weight:700;">
+                        <span>হ্যাঁ</span> <span style="color:var(--primary); font-size:1.5rem;">✓</span>
+                    </div>
+                    <div style="background:white; padding:0.8rem; border-radius:10px; display:flex; justify-content:space-between; align-items:center; font-weight:700; opacity:0.4;">
+                        <span>না</span> <span></span>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <section class="countdown">
+        <h2 style="font-size:1.6rem; color:var(--primary-dark); margin-bottom:1.5rem;">গণভোট শুরু হতে বাকি</h2>
+        <div class="timer">
+            <div class="timer-unit"><span class="timer-val" id="days">০০</span><span style="font-size:0.8rem; color:var(--text-sub);">দিন</span></div>
+            <div class="timer-unit"><span class="timer-val" id="hours">০০</span><span style="font-size:0.8rem; color:var(--text-sub);">ঘণ্টা</span></div>
+            <div class="timer-unit"><span class="timer-val" id="minutes">০০</span><span style="font-size:0.8rem; color:var(--text-sub);">মিনিট</span></div>
+            <div class="timer-unit"><span class="timer-val" id="seconds">০০</span><span style="font-size:0.8rem; color:var(--text-sub);">সেকেন্ড</span></div>
+        </div>
+    </section>
+
+    <!-- Developer Section - Fixed Image implementation -->
+    <section class="dev-section" id="developer">
+        <div class="dev-card" id="devTrigger">
+            <div class="dev-img-container">
+                <img src="https://jubayer.sirv.com/photo-card-1769628151296.png" class="dev-img" alt="যুবায়ের আহমেদ" onerror="this.src='https://ui-avatars.com/api/?name=Jubayer+Ahmed&background=006a4e&color=fff&size=200'">
+            </div>
+            <h3 style="font-size:1.4rem; color:var(--primary); margin-bottom:5px;">যুবায়ের আহমেদ</h3>
+            <p style="color:var(--text-sub); font-weight:600; font-size:0.95rem;">গ্রাফিক ডিজাইনার ও ডেভেলপার</p>
+            <p style="margin-top:8px; font-size:0.85rem; color:var(--primary-light); font-weight:700;">(বিস্তারিত দেখতে এখানে ক্লিক করুন)</p>
+            
+            <div class="dev-bio" id="devBio">
+                <p style="margin-bottom:1rem; font-size:0.95rem; color:var(--text-main);">আমি যুবায়ের আহমেদ, একজন পেশাদার গ্রাফিক ডিজাইনার ও ক্রিয়েটিভ টুল নির্মাতা। গত ৫ বছরের বেশি সময় ধরে আমি ব্যবহারবান্ধব ডিজিটাল সল্যুশন নিয়ে কাজ করে আসছি।</p>
+                <p style="font-size:0.95rem; color:var(--text-main);">ডিজাইন ও প্রযুক্তির সমন্বয়ে সহজ এবং সবার জন্য ব্যবহারযোগ্য টুল তৈরি করাই আমার মূল লক্ষ্য। এই ফ্রেম জেনারেটরটি গণভোট বিষয়ে সচেতনতা বৃদ্ধির একটি ক্ষুদ্র চেষ্টা।</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-disclaimer">
+                <h4 style="color:var(--accent); margin-bottom:0.5rem;">সতর্কবার্তা</h4>
+                <p style="font-size:0.85rem; line-height:1.5;">এই ওয়েবসাইটটি শুধুমাত্র গণভোট ২০২৬ বিষয়ে তথ্য ও সচেতনতা বৃদ্ধির জন্য তৈরি। এটি কোনো নির্দিষ্ট রাজনৈতিক প্রচারণা প্ল্যাটফর্ম নয়।</p>
+            </div>
+            <nav style="display:flex; justify-content:center; gap:1.2rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+                <button style="background:none; border:none; color:white; font-weight:600; cursor:pointer;" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">প্রচ্ছদ</button>
+                <button style="background:none; border:none; color:white; font-weight:600; cursor:pointer;" onclick="scrollToDev()">আমাদের সম্পর্কে</button>
+                <button style="background:none; border:none; color:white; font-weight:600; cursor:pointer;" onclick="toggleModal('privacyModal', true)">গোপনীয়তা নীতি</button>
+            </nav>
+            <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:1.5rem; font-size:0.85rem; opacity:0.8;">
+                &copy; ২০২৬ যুবায়ের আহমেদ। সর্বস্বত্ব সংরক্ষিত।<br>
+                Made with ❤ for Bangladesh
+            </div>
+        </div>
+    </footer>
+
+    <div class="modal" id="privacyModal">
+        <div class="modal-content">
+            <h3 style="color:var(--primary); margin-bottom:1rem;">গোপনীয়তা নীতি</h3>
+            <p>এই ওয়েবসাইট কোনো ইউজার ডাটা বা ছবি সার্ভারে জমা রাখে না। আপনার আপলোড করা ছবি সরাসরি আপনার ব্রাউজারেই প্রসেসিং হয়। আমরা আপনার গোপনীয়তাকে সর্বোচ্চ গুরুত্ব দিয়ে থাকি।</p>
+            <button style="margin-top:1.5rem; width:100%; background:var(--primary-gradient); color:white; padding:0.8rem; border-radius:10px; border:none; font-weight:700; cursor:pointer;" onclick="toggleModal('privacyModal', false)">বন্ধ করুন</button>
+        </div>
+    </div>
+
+    <script>
+        if (typeof show_9895120 === 'undefined') { window.show_9895120 = () => new Promise(r => setTimeout(r, 800)); }
+
+        const canvas = document.getElementById('cardCanvas');
+        const ctx = canvas.getContext('2d', { alpha: true });
+        const fileInput = document.getElementById('fileInput');
+        const zoomSlider = document.getElementById('zoomSlider');
+        const zoomText = document.getElementById('zoomLabelText');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const frameList = document.getElementById('frameList');
+        const devBio = document.getElementById('devBio');
+        const dlSpinner = document.getElementById('dlSpinner');
+        const dlIcon = document.getElementById('dlIcon');
+
+        let userImg = null, frameImg = new Image(), scale = 1, posX = 540, posY = 540;
+        let isDragging = false, lastX = 0, lastY = 0;
+
+        const FRAMES = [
+            { id: 1, name: "ব্যক্তিগত ১", url: "https://jubayer.sirv.com/Layer%202rydcdkfhkthfykkfy.png" },
+            { id: 2, name: "ব্যক্তিগত ২", url: "https://jubayer.sirv.com/design55555555rteyhrthythwe5hyrtyhqggghjhgjgj.png" },
+            { id: 3, name: "ঘড়ি", url: "https://jubayer.sirv.com/kalafot%20mojlissssrfrfrrrrrreddede.png" },
+            { id: 4, name: "রিকশা", url: "https://jubayer.sirv.com/kalafot%20mojlissssyhguguhghug.png" },
+            { id: 5, name: "বিএনপি", url: "https://jubayer.sirv.com/bnppppsdgdhgfjyf.png" },
+            { id: 6, name: "জামাত", url: "https://jubayer.sirv.com/jamaaaaatttttttttt.png" },
+            { id: 7, name: "এসিপি", url: "https://jubayer.sirv.com/ncpppppp.png" }
+        ];
+
+        function toBN(num) {
+            const bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+            return String(num).padStart(2, '0').split('').map(d => bn[d] || d).join('');
+        }
+
+        function updateTimer() {
+            const diff = new Date("Feb 12, 2026 08:00:00").getTime() - new Date().getTime();
+            if (diff > 0) {
+                document.getElementById("days").innerText = toBN(Math.floor(diff / 86400000));
+                document.getElementById("hours").innerText = toBN(Math.floor((diff % 86400000) / 3600000));
+                document.getElementById("minutes").innerText = toBN(Math.floor((diff % 3600000) / 60000));
+                document.getElementById("seconds").innerText = toBN(Math.floor((diff % 60000) / 1000));
+            }
+        }
+        setInterval(updateTimer, 1000); updateTimer();
+
+        function initFrames() {
+            FRAMES.forEach((f, i) => {
+                const item = document.createElement('div');
+                item.className = `frame-item ${i === 0 ? 'active' : ''}`;
+                item.innerHTML = `<div class="frame-preview"><img src="${f.url}" alt="${f.name}"></div><span>${f.name}</span>`;
+                item.onclick = () => {
+                    document.querySelectorAll('.frame-item').forEach(e => e.classList.remove('active'));
+                    item.classList.add('active'); loadFrame(f.url);
+                };
+                frameList.appendChild(item);
+            });
+            loadFrame(FRAMES[0].url);
+        }
+
+        function loadFrame(url) { frameImg.crossOrigin="anonymous"; frameImg.src=url; frameImg.onload=draw; }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (userImg) {
+                const w = userImg.width * scale, h = userImg.height * scale;
+                ctx.drawImage(userImg, posX - w/2, posY - h/2, w, h);
+            } else {
+                ctx.fillStyle = "#cbd5e1"; ctx.fillRect(0,0,1080,1080);
+                ctx.fillStyle = "#475569"; ctx.font = "700 48px 'Hind Siliguri'"; ctx.textAlign="center";
+                ctx.fillText("আপনার ছবি আপলোড করুন", 540, 540);
+            }
+            if (frameImg.complete) ctx.drawImage(frameImg, 0, 0, 1080, 1080);
+        }
+
+        fileInput.onchange = (e) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    userImg = img; scale = Math.max(1080/img.width, 1080/img.height);
+                    zoomSlider.value = scale; zoomText.innerText = toBN(Math.round(scale*100)) + "%";
+                    posX = 540; posY = 540; draw();
+                };
+                img.src = ev.target.result;
+            };
+            if(e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
+        };
+
+        zoomSlider.oninput = (e) => {
+            scale = parseFloat(e.target.value); zoomText.innerText = toBN(Math.round(scale * 100)) + "%"; draw();
+        };
+
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const cx = e.touches ? e.touches[0].clientX : e.clientX, cy = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: cx - rect.left, y: cy - rect.top };
+        }
+
+        canvas.addEventListener('mousedown', (e) => { if(!userImg) return; isDragging = true; const p = getMousePos(e); lastX = p.x; lastY = p.y; });
+        window.addEventListener('mousemove', (e) => {
+            if(!isDragging) return; const p = getMousePos(e); const factor = 1080 / canvas.offsetWidth;
+            posX += (p.x - lastX) * factor; posY += (p.y - lastY) * factor; lastX = p.x; lastY = p.y; draw();
+        });
+        window.addEventListener('mouseup', () => isDragging = false);
+        canvas.addEventListener('touchstart', (e) => { if(!userImg) return; e.preventDefault(); isDragging = true; const p = getMousePos(e); lastX = p.x; lastY = p.y; }, {passive:false});
+        window.addEventListener('touchmove', (e) => { if(!isDragging) return; const p = getMousePos(e); const factor = 1080 / canvas.offsetWidth; posX += (p.x - lastX) * factor; posY += (p.y - lastY) * factor; lastX = p.x; lastY = p.y; draw(); }, {passive:false});
+        window.addEventListener('touchend', () => isDragging = false);
+
+        downloadBtn.onclick = async () => {
+            if (!userImg) return alert("প্রথমে ছবি যুক্ত করুন!");
+            dlSpinner.style.display = "block"; dlIcon.style.display = "none";
+            await show_9895120();
+            const link = document.createElement('a');
+            link.download = `ganovote-card-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+            dlSpinner.style.display = "none"; dlIcon.style.display = "block";
+        };
+
+        function toggleModal(id, show) { document.getElementById(id).classList.toggle('active', show); }
+        function scrollToDev() { document.getElementById('developer').scrollIntoView({behavior: 'smooth'}); setTimeout(() => devBio.classList.add('active'), 600); }
+        document.getElementById('devTrigger').onclick = () => devBio.classList.toggle('active');
+
+        initFrames();
+    </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>            padding: 0;
             font-family: var(--font-family);
             -webkit-tap-highlight-color: transparent;
         }
